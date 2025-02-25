@@ -13,7 +13,7 @@ interface Post {
 }
 
 const getPost = async () => {
-  const res = await fetch('http://localhost:3000/api/post');
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/post`);
   const json = await res.json();
   return json;
 };
@@ -26,7 +26,6 @@ const EventPage = async () => {
 
   return (
     <div className='p-5 rounded-md border-b leading-9 max-w-7xl mx-auto'>
-      {/* Tombol Create hanya tampil jika user adalah admin */}
       {isAdmin && (
         <Link 
           href="/event/create"
@@ -38,8 +37,7 @@ const EventPage = async () => {
 
       <div className="list-container">
       {posts?.posts?.map((post: Post, index: number) => (
-      <Item key={post.id} post={post} />
-     ))}
+      <Item key={post.id} post={post} />))}
 
 
       </div>

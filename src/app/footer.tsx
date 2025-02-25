@@ -18,7 +18,7 @@ const Footer = () => {
   useEffect(() => {
     const fetchLatestPosts = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/post");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/post`);
         const json = await res.json();
         setLatestPosts(json.posts.slice(0, 2)); // Ambil 2 berita terbaru
       } catch (error) {

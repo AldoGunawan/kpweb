@@ -61,7 +61,7 @@ export const POST = async (req: NextRequest) => {
         .from("post-event")
         .upload(fileName, imageFile, {
           cacheControl: "3600",
-          upsert: true,
+          upsert: true, // Jika true, file akan ditimpa jika sudah ada
         });
 
       console.log("Upload Data:", data);
@@ -122,5 +122,3 @@ export const PUT = async (req: NextRequest) => {
 
   return NextResponse.json(post);
 };
-
-// Create Supabase client
