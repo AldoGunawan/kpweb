@@ -7,22 +7,21 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const prisma = new PrismaClient();
+const globalForPrisma = global as unknown as { prisma?: PrismaClient };
+export const prisma = globalForPrisma.prisma || new PrismaClient();
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 // ✅ API GET: Ambil semua postingan
 export async function GET() {
   try {
     const posts = await prisma.post.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
-
     return NextResponse.json({ posts });
   } catch (error) {
     console.error("Error GET posts:", error);
     return NextResponse.json(
-      { message: "Terjadi kesalahan server saat mengambil data" },
+      { message: "Terjadi kesalahan server" },
       { status: 500 }
     );
   }
@@ -44,7 +43,6 @@ export async function POST(req: NextRequest) {
     }
 
     let imageUrl = "";
-
     if (imageFile) {
       const fileExt = imageFile.name.split(".").pop()?.toLowerCase();
       const allowedExts = ["jpg", "jpeg", "png", "webp"];
@@ -75,18 +73,13 @@ export async function POST(req: NextRequest) {
     }
 
     const post = await prisma.post.create({
-      data: {
-        title,
-        content,
-        imageUrl,
-      },
+      data: { title, content, imageUrl },
     });
-
     return NextResponse.json(post);
   } catch (error) {
     console.error("Error POST post:", error);
     return NextResponse.json(
-      { message: "Terjadi kesalahan server saat membuat post" },
+      { message: "Terjadi kesalahan server" },
       { status: 500 }
     );
   }
@@ -102,15 +95,12 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ message: "ID tidak valid" }, { status: 400 });
     }
 
-    await prisma.post.delete({
-      where: { id },
-    });
-
+    await prisma.post.delete({ where: { id } });
     return NextResponse.json({ message: "Post berhasil dihapus" });
   } catch (error) {
     console.error("Error DELETE post:", error);
     return NextResponse.json(
-      { message: "Terjadi kesalahan server saat menghapus post" },
+      { message: "Terjadi kesalahan server" },
       { status: 500 }
     );
   }
@@ -137,7 +127,7 @@ export async function PUT(req: NextRequest) {
   } catch (error) {
     console.error("Error PUT post:", error);
     return NextResponse.json(
-      { message: "Terjadi kesalahan server saat mengupdate post" },
+      { message: "Terjadi kesalahan server" },
       { status: 500 }
     );
   }
