@@ -10,12 +10,10 @@ const NavbarPage = () => {
 
   return (
     <header className="p-4 border-b flex items-center justify-between text-slate-800">
-      {/* Kiri: Nama Sekolah */}
       <div className="text-xl font-bold">
         <Link href="/">SMP Negeri 10 TAPUNG</Link>
       </div>
 
-      {/* Kanan: Menu Navigasi + Login/Logout */}
       <div className="flex items-center space-x-8">
         <nav className="flex space-x-8">
           <Link href="/about" className="hover:text-blue-500 transition">About</Link>
@@ -26,7 +24,6 @@ const NavbarPage = () => {
           )}
         </nav>
 
-        {/* Jika user login, tampilkan UserAccountNavbar */}
         {session?.user && <UserAccountNavbar />}
       </div>
     </header>

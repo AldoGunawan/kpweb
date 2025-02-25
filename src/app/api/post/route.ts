@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 export async function GET() {
   const posts = await prisma.post.findMany({
     orderBy: {
-      createdAt: "desc", // 👈 Urutkan berdasarkan waktu pembuatan terbaru
+      createdAt: "desc",
     },
   });
 
@@ -54,7 +54,6 @@ export const POST = async (req: NextRequest) => {
         );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const imageBlob = new Blob([imageFile], { type: imageFile.type });
 
       const fileName = `images/${Date.now()}.${fileExt}`;
@@ -62,7 +61,7 @@ export const POST = async (req: NextRequest) => {
         .from("post-event")
         .upload(fileName, imageFile, {
           cacheControl: "3600",
-          upsert: true, // Jika true, file akan ditimpa jika sudah ada
+          upsert: true,
         });
 
       console.log("Upload Data:", data);

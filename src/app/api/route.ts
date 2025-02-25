@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../lib/auth";

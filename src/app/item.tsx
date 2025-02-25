@@ -41,7 +41,6 @@ const Item = ({ post }: Props) => {
                     <div className="flex items-center gap-4 border p-5 rounded-lg shadow-md bg-white 
                         hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer">
                         
-                        {/* Gambar di kiri */}
                         {post.imageUrl && (
                             <div className="w-1/3 min-w-[120px]">
                                 <Image 
@@ -54,7 +53,6 @@ const Item = ({ post }: Props) => {
                             </div>
                         )}
         
-                        {/* Konten di kanan */}
                         <div className="w-2/3">
                             <h1 className="text-md font-bold mb-1">{post.title}</h1>
                             <p className="text-sm text-gray-600 line-clamp-2">{post.content}</p>
@@ -62,7 +60,6 @@ const Item = ({ post }: Props) => {
                     </div>
                 </Link>
         
-                {/* Tombol hanya untuk admin */}
                 {isAdmin && (
                     <div className="flex justify-end gap-2 mt-2">
                         <button

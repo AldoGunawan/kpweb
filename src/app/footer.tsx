@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client"; // Pastikan ini ada
 
 import { useEffect, useState } from "react";
@@ -6,8 +6,14 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+  imageUrl?: string;
+}
 const Footer = () => {
-  const [latestPosts, setLatestPosts] = useState<any[]>([]);
+  const [latestPosts, setLatestPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     const fetchLatestPosts = async () => {
