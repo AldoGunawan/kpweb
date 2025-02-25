@@ -2,25 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { PrismaClient } from "@prisma/client";
 import { createClient } from "@supabase/supabase-js";
-import { revalidatePath } from "next/cache";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-export const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const prisma = new PrismaClient();
 
+// ✅ API GET: Ambil semua postingan
 export async function GET() {
-  const posts = await prisma.post.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  try {
+    const posts = await prisma.post.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-  return NextResponse.json({ posts });
+    return NextResponse.json({ posts });
+  } catch (error) {
+    console.error("Error GET posts:", error);
+    return NextResponse.json(
+      { message: "Terjadi kesalahan server saat mengambil data" },
+      { status: 500 }
+    );
+  }
 }
 
-export const POST = async (req: NextRequest) => {
+// ✅ API POST: Tambah postingan baru
+export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const title = formData.get("title") as string;
@@ -34,40 +43,35 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    const user = await supabase.auth.getUser();
-    if (!user || !user.data) {
-      console.error("User tidak ditemukan. Harap login.");
-      return;
-    }
-
     let imageUrl = "";
 
     if (imageFile) {
       const fileExt = imageFile.name.split(".").pop()?.toLowerCase();
-
-      // Validasi tipe file
       const allowedExts = ["jpg", "jpeg", "png", "webp"];
       if (!allowedExts.includes(fileExt || "")) {
         return NextResponse.json(
-          { message: "Format gambar harus JPG, JPEG, PNG, atau WEBP!" },
+          { message: "Format gambar tidak valid!" },
           { status: 400 }
         );
       }
 
-      const imageBlob = new Blob([imageFile], { type: imageFile.type });
-
       const fileName = `images/${Date.now()}.${fileExt}`;
       const { data, error } = await supabase.storage
-        .from("post-event")
+        .from("uploads")
         .upload(fileName, imageFile, {
           cacheControl: "3600",
-          upsert: true, // Jika true, file akan ditimpa jika sudah ada
+          upsert: true,
         });
 
-      console.log("Upload Data:", data);
-      console.log("Upload Error:", error);
+      if (error) {
+        console.error("Upload gagal:", error);
+        return NextResponse.json(
+          { message: "Gagal mengunggah gambar" },
+          { status: 500 }
+        );
+      }
 
-      imageUrl = `${supabaseUrl}/storage/v1/object/public/post-event/${fileName}`;
+      imageUrl = `${supabaseUrl}/storage/v1/object/public/uploads/${fileName}`;
     }
 
     const post = await prisma.post.create({
@@ -78,47 +82,63 @@ export const POST = async (req: NextRequest) => {
       },
     });
 
-    revalidatePath("/event");
     return NextResponse.json(post);
   } catch (error) {
-    console.error("Terjadi kesalahan:", error);
+    console.error("Error POST post:", error);
     return NextResponse.json(
-      { message: "Terjadi kesalahan server" },
+      { message: "Terjadi kesalahan server saat membuat post" },
       { status: 500 }
     );
   }
-};
+}
 
-export const DELETE = async (req: NextRequest) => {
-  const url = new URL(req.url).searchParams;
-  const id = Number(url.get("id")) || 0;
+// ✅ API DELETE: Hapus postingan
+export async function DELETE(req: NextRequest) {
+  try {
+    const url = new URL(req.url);
+    const id = Number(url.searchParams.get("id"));
 
-  const post = await prisma.post.delete({
-    where: {
-      id,
-    },
-  });
+    if (!id) {
+      return NextResponse.json({ message: "ID tidak valid" }, { status: 400 });
+    }
 
-  if (!post) {
-    return NextResponse.json({ message: "Error" }, { status: 500 });
+    await prisma.post.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Post berhasil dihapus" });
+  } catch (error) {
+    console.error("Error DELETE post:", error);
+    return NextResponse.json(
+      { message: "Terjadi kesalahan server saat menghapus post" },
+      { status: 500 }
+    );
   }
+}
 
-  return NextResponse.json({});
-};
+// ✅ API PUT: Update postingan
+export async function PUT(req: NextRequest) {
+  try {
+    const { id, title, content, imageUrl } = await req.json();
 
-export const PUT = async (req: NextRequest) => {
-  const { title, content, id, imageUrl } = await req.json();
+    if (!id || !title || !content) {
+      return NextResponse.json(
+        { message: "Data tidak lengkap" },
+        { status: 400 }
+      );
+    }
 
-  const post = await prisma.post.update({
-    where: {
-      id: Number(id),
-    },
-    data: {
-      title,
-      content,
-      imageUrl,
-    },
-  });
+    const post = await prisma.post.update({
+      where: { id: Number(id) },
+      data: { title, content, imageUrl },
+    });
 
-  return NextResponse.json(post);
-};
+    return NextResponse.json(post);
+  } catch (error) {
+    console.error("Error PUT post:", error);
+    return NextResponse.json(
+      { message: "Terjadi kesalahan server saat mengupdate post" },
+      { status: 500 }
+    );
+  }
+}
